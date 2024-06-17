@@ -18,6 +18,9 @@ public class ProjectManagementContext : DbContext
         base.OnModelCreating(modelBuilder);
         // Global query filter soft-delete
         modelBuilder.Entity<Project>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<Employee>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<Company>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<ProjectEmployee>().HasQueryFilter(c => !c.IsDeleted);
         
         #region Project 
 

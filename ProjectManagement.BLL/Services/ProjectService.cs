@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Security.AccessControl;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagement.BLL.DTOs;
@@ -12,11 +13,12 @@ public class ProjectService : IProjectService
 {
     private readonly ProjectManagementContext _context;
     private readonly IMapper _mapper;
-    
+
     /// <summary>
     /// Controller
     /// </summary>
     /// <param name="context"></param>
+    /// <param name="mapper"></param>
     public ProjectService(ProjectManagementContext context, IMapper mapper)
     {
         _context = context;
@@ -30,30 +32,20 @@ public class ProjectService : IProjectService
     /// </summary>
     public async Task<IEnumerable<ProjectGetDto>>  GetProjects()
     {
-        var projects =  await _context.Projects
-            .Include(p => p.Employee)
-            .Include(p => p.ClientCompany)
-            .Include(p => p.ContractorCompany)
-            .ToListAsync();
-
+        var projectsQuery =  GetPrivateProjects();
+        
+        var projects = await projectsQuery.ToListAsync();
 
         return _mapper.Map<IEnumerable<ProjectGetDto>>(projects);
-
     }
     
-
     /// <summary>
     /// Retrieves a project by its ID asynchronously.
     /// </summary>
     public async Task<ProjectGetDto> GetProject(int projectId)
     {
-        var project =  await _context.Projects
-            .Include(p => p.Employee)
-            .Include(p => p.ClientCompany)
-            .Include(p => p.ContractorCompany)
-            .FirstOrDefaultAsync(p => p.Id == projectId);
-
-
+        var project = await GetPrivateProjects().FirstOrDefaultAsync(p => p.Id == projectId);
+        
         return _mapper.Map<ProjectGetDto>(project);
     }
 
@@ -69,9 +61,8 @@ public class ProjectService : IProjectService
             EndAt = dto.StartDate,
             Priority = dto.Priority,
             ClientCompanyId = dto.ClientCompanyId,
-            ContractorCompanyId =
-                dto.ContractorCompanyId, //todo нужно чтобы во фронте нашли компанию и передали ID
-            EmployeeId = dto.ProjectManagerId // todo тоже самое
+            ContractorCompanyId = dto.ContractorCompanyId, 
+            EmployeeId = dto.ProjectManagerId 
         };
         
         _context.Projects.Add(project);
@@ -82,22 +73,22 @@ public class ProjectService : IProjectService
     /// <summary>
     /// Updates an existing project asynchronously.
     /// </summary>
-    public async Task<Project> UpdateProject(int id, ProjectUpdateDto dto)
+    public async Task<Project> UpdateProject(ProjectUpdateDto request)
     {
-        var project = await _context.Projects.FindAsync(id);
+        var project = await _context.Projects.FindAsync(request.Id);
         
         if (project == null)
         {
             return null;
         }
         
-        project.Name = dto.Name;
-        project.StartedAt = dto.StartDate;
-        project.EndAt = dto.EndDate;
-        project.Priority = dto.Priority;
-        project.ClientCompanyId = dto.ClientCompanyId;
-        project.ContractorCompanyId = dto.ContractorCompanyId;
-        project.EmployeeId = dto.ProjectManagerId;
+        project.Name = request.Name;
+        project.StartedAt = request.StartDate;
+        project.EndAt = request.EndDate;
+        project.Priority = request.Priority;
+        project.ClientCompanyId = request.ClientCompanyId;
+        project.ContractorCompanyId = request.ContractorCompanyId;
+        project.EmployeeId = request.ProjectManagerId;
         
         _context.Entry(project).State = EntityState.Modified;
         await _context.SaveChangesAsync();
@@ -110,10 +101,8 @@ public class ProjectService : IProjectService
     public async Task<bool> DeleteProject(int id)
     {
         var project = await _context.Projects.FindAsync(id);
-        if (project == null)
-        {
-            return false;
-        }
+        
+        if (project == null) return false;
 
         project.IsDeleted = true;
         
@@ -121,21 +110,7 @@ public class ProjectService : IProjectService
         await _context.SaveChangesAsync();
         return true;
     }
-    
-    /// <summary>
-    ///  Retrieves all projects asynchronously including deleted 
-    /// </summary>
-    /// <returns></returns>
-    public async Task<IEnumerable<Project>> GetProjectsIncludingDeleted()
-    {
-        return await _context.Projects
-            .IgnoreQueryFilters() 
-            .Include(p => p.Employee)
-            .Include(p => p.ClientCompany)
-            .Include(p => p.ContractorCompany)
-            .ToListAsync();
-    }
-    
+
     /// <summary>
     /// Add Employee To Project
     /// </summary>
@@ -145,7 +120,12 @@ public class ProjectService : IProjectService
     {
         //todo обработку ошибки нужно поставить чтобы понять операция была правельная или нет
 
-        var projectEmployee = new ProjectEmployee { ProjectId = projectId, EmployeeId = employeeId };
+        var projectEmployee = new ProjectEmployee 
+            { 
+                ProjectId = projectId, 
+                EmployeeId = employeeId 
+            };
+        
         _context.ProjectEmployees.Add(projectEmployee);
         await _context.SaveChangesAsync();
     }
@@ -167,10 +147,102 @@ public class ProjectService : IProjectService
             projectEmployee.IsDeleted = true;
         
             _context.Entry(projectEmployee).State = EntityState.Modified;
-            _context.ProjectEmployees.Remove(projectEmployee);
             await _context.SaveChangesAsync();
         }
     }
+
+    /// <summary>
+    /// Get Project Filter
+    /// </summary>
+    /// <param name="filter"></param>
+    /// <returns></returns>
+    public async Task<IEnumerable<ProjectGetDto>> GetProjectsFilter( ProjectFilterDto filter)
+    {
+        var projectsQuery = GetPrivateProjects();
+
+        var projectQueryFiltered =  ApplyFilters(filter, projectsQuery);
+
+        projectQueryFiltered = ApplySorting(filter, projectQueryFiltered);
+
+        var projectPaginated = Paginate(projectQueryFiltered, filter.PageNumber, filter.PageSize);
+
+        return  _mapper.Map<IEnumerable<ProjectGetDto>>(projectPaginated);
+
+        // если параметр не null то просто верни если dto существует то отсортеруй
+    }
+
     #endregion
+
     
+    #region Private methods
+
+    private  IQueryable<Project> GetPrivateProjects()
+    {
+        var projects =  _context.Projects
+            .Include(p => p.Employee)
+            .Include(p => p.ClientCompany)
+            .Include(p => p.ContractorCompany)
+            .Include(p => p.ProjectEmployees)
+            .ThenInclude(p => p.Employee);
+        
+        return projects;
+    }
+    
+    private IQueryable<Project> ApplyFilters(ProjectFilterDto filter, IQueryable<Project> query)
+    {
+        if (filter.StartDateFrom.HasValue)
+        {
+            query = query.Where(c => c.StartedAt >= filter.StartDateFrom.Value);
+        }
+
+        if (filter.StartDateTo.HasValue)
+        {
+            query = query.Where(c => c.StartedAt <= filter.StartDateTo.Value);
+        }
+
+        if (filter.Priority.HasValue)
+        {
+            query = query.Where(c => c.Priority == filter.Priority.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.ProjectManagerName))
+        {
+            query = query.Where(c =>
+                c.Employee.FirstName + " " + c.Employee.LastName ==
+                filter.ProjectManagerName); //todo нужно улучшить, Ajax если не получилось то лучше убрать 
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.ProjectName))
+        {
+            query = query.Where(c => c.Name.Contains(filter.ProjectName));
+        }
+
+        return query;
+    }
+
+    private IQueryable<Project> ApplySorting(ProjectFilterDto filter, IQueryable<Project> query)
+    {
+        var projectQuerySorted = filter.SortBy.ToLower() switch
+        {
+            "name" => filter.IsAscending
+                ? query.OrderBy(c => c.Name)
+                : query.OrderByDescending(c => c.Name),
+            "startdate" => filter.IsAscending
+                ? query.OrderBy(c => c.StartedAt)
+                : query.OrderByDescending(c => c.StartedAt),
+            "priority" => filter.IsAscending
+                ? query.OrderBy(c => c.Priority)
+                : query.OrderByDescending(c => c.Priority),
+            _ => query.OrderBy(c => c.Name)
+        };
+
+        return projectQuerySorted;
+    }
+    
+    private async Task<List<Project>> Paginate(IQueryable<Project> query, int pageNumber, int pageSize)
+    {
+        return await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+    } 
+
+    #endregion
 }

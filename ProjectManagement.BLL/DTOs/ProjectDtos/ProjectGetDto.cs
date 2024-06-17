@@ -1,4 +1,7 @@
-﻿namespace ProjectManagement.BLL.DTOs;
+﻿using ProjectManagement.BLL.DTOs.EmployeeDtos;
+using ProjectManagement.DAL.Models;
+
+namespace ProjectManagement.BLL.DTOs;
 
 public class ProjectGetDto
 {
@@ -10,4 +13,5 @@ public class ProjectGetDto
     public string ProjectManagerName { get; set; }
     public string ClientCompanyName { get; set; }
     public string ContractorCompanyName { get; set; }
+    public List<EmployeeGetDto> AssignedEmployees { get; set; }
 }

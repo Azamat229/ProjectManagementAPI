@@ -67,17 +67,16 @@ public class EmployeeController : ControllerBase
     /// <summary>
     /// Update Employee
     /// </summary>
-    /// <param name="id"></param>
     /// <param name="employee"></param>
     /// <returns></returns>
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateEmployee(int id, [FromBody] EmployeeUpdateDto employee)
+    [HttpPut]
+    public async Task<IActionResult> UpdateEmployee([FromBody] EmployeeUpdateDto employee)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        var employeeToUpdate = await _employeeService.GetEmployee(id);
+        var employeeToUpdate = await _employeeService.GetEmployee(employee.EmployeeId);
         
         if (employeeToUpdate == null)
         {

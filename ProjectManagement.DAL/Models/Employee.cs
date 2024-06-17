@@ -9,7 +9,7 @@ public class Employee
     public string LastName { get; set; }
     public string MiddleName { get; set; }
     public string Email { get; set; }
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; set; } = false;
 
     public ICollection<Project> Projects { get; set; } = new List<Project>();
     public ICollection<ProjectEmployee> ProjectEmployees { get; set; } = new List<ProjectEmployee>();

@@ -46,6 +46,23 @@ public class ProjectController : ControllerBase
         }
         return Ok(project);
     }
+    
+    /// <summary>
+    /// Get All Projects by filter and pagination
+    /// </summary>
+    /// <param name="filter"></param>
+    /// <returns></returns>
+    [HttpPost("filter")]
+    public async Task<IActionResult> GetProjectFilter([FromBody] ProjectFilterDto filter)
+    {
+        var projects = await _projectService.GetProjectsFilter(filter);
+        
+        if (projects == null)
+        {
+            return NotFound();
+        }
+        return Ok(projects);
+    }
 
     /// <summary>
     /// Create Project
@@ -66,24 +83,23 @@ public class ProjectController : ControllerBase
     /// <summary>
     /// Update Project by Id
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="project"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateProject(int id, [FromBody] ProjectUpdateDto project)
+    [HttpPut]
+    public async Task<IActionResult> UpdateProject([FromBody] ProjectUpdateDto request)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        var projectToUpdate = await _projectService.GetProject(id);
+        var projectToUpdate = await _projectService.GetProject(request.Id);
         
         if (projectToUpdate == null)
         {
             return NotFound();
         }
 
-        await _projectService.UpdateProject(id, project);
+        await _projectService.UpdateProject(request);
         
 
         return NoContent();
