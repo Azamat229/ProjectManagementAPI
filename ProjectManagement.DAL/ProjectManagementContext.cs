@@ -1,4 +1,6 @@
-﻿using ProjectManagement.DAL.Models;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using ProjectManagement.DAL.Models;
+using Task = ProjectManagement.DAL.Models.Task;
 
 namespace ProjectManagement.DAL;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,7 @@ public class ProjectManagementContext : DbContext
     public DbSet<Employee> Employees { get; set; }
     public DbSet<Company> Companies { get; set; }
     public DbSet<ProjectEmployee> ProjectEmployees { get; set; }
+    public DbSet<Models.Task> Tasks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +63,29 @@ public class ProjectManagementContext : DbContext
         modelBuilder.Entity<ProjectEmployee>()
             .HasOne(x => x.Project)
             .WithMany(x => x.ProjectEmployees)
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        #endregion
+        
+        
+        #region Task
+
+        modelBuilder.Entity<Task>()
+            .HasOne(x => x.AuthorEmployee)
+            .WithMany(x => x.Task)
+            .HasForeignKey(x => x.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Task>()
+            .HasOne(x => x.ImplementorEmpoyee)
+            .WithMany(x => x.Task)
+            .HasForeignKey(x => x.ImplementorId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Task>()
+            .HasOne(x => x.Project)
+            .WithMany(x => x.Task)
             .HasForeignKey(x => x.ProjectId)
             .OnDelete(DeleteBehavior.Restrict);
 
