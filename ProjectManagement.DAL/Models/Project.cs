@@ -2,11 +2,34 @@
 
 public class Project
 {
+    /// <summary>
+    /// Primary Key
+    /// </summary>
     public int Id { get; set; }
+    
+    /// <summary>
+    /// Name of Project
+    /// </summary>
     public string Name { get; set; }
+    
+    /// <summary>
+    /// Started date
+    /// </summary>
     public DateTime StartedAt { get; set; }
+    
+    /// <summary>
+    /// End date
+    /// </summary>
     public DateTime? EndAt { get; set; }
+    
+    /// <summary>
+    /// Priority number 1,2,3,4,5
+    /// </summary>
     public int Priority { get; set; }
+    
+    /// <summary>
+    /// Is Deleted 
+    /// </summary>
     public bool IsDeleted { get; set; } 
 
     
@@ -32,6 +55,8 @@ public class Project
     
     // Navigation properties
     public ICollection<ProjectEmployee> ProjectEmployees { get; set; } = new List<ProjectEmployee>();
+    
+    public ICollection<Task> Task { get; set; } = new List<Task>();
 
 
 
