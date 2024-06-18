@@ -9,21 +9,21 @@ public interface IProjectService
     /// Get All Projects Async
     /// </summary>
     /// <returns></returns>
-    Task<IEnumerable<ProjectGetDto>> GetProjects();
+    Task<IEnumerable<ProjectViewDto>> GetProjects();
     
     /// <summary>
     /// Get Project By Id Async
     /// </summary>
     /// <param name="projectId"></param>
     /// <returns></returns>
-    Task<ProjectGetDto> GetProject(int projectId);
+    Task<ProjectViewDto> GetProject(int projectId);
 
     /// <summary>
     /// Get All Projects Async with filter and pagination
     /// </summary>
     /// <param name="filter"></param>
     /// <returns></returns>
-    Task<IEnumerable<ProjectGetDto>> GetProjectsFilter(ProjectFilterDto filter);
+    Task<IEnumerable<ProjectViewDto>> GetProjectsFilter(ProjectFilterDto filter);
 
     /// <summary>
     /// Create Project Async
@@ -52,7 +52,7 @@ public interface IProjectService
     /// <param name="projectId"></param>
     /// <param name="employeeId"></param>
     /// <returns></returns>
-    Task AddEmployeeToProject(int projectId, int employeeId);
+    Task<bool>  AddEmployeeToProject(int projectId, int employeeId);
 
     /// <summary>
     /// Remove Employee From Project
@@ -60,5 +60,5 @@ public interface IProjectService
     /// <param name="projectId"></param>
     /// <param name="employeeId"></param>
     /// <returns></returns>
-    Task RemoveEmployeeFromProject(int projectId, int employeeId);
+    Task<bool>  RemoveEmployeeFromProject(int projectId, int employeeId);
 }

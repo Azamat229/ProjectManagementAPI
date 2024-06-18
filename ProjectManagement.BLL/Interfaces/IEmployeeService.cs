@@ -11,28 +11,28 @@ public interface IEmployeeService
     /// Get All Employees Async
     /// </summary>
     /// <returns></returns>
-    Task<List<EmployeeGetDto>> GetEmployees();
+    Task<List<EmployeeViewDto>> GetEmployees();
     
     /// <summary>
     /// Get Employee By Id Async
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task<EmployeeGetDto> GetEmployee(int id);
+    Task<EmployeeViewDto> GetEmployee(int id);
     
     /// <summary>
     /// Create Employee Async
     /// </summary>
     /// <param name="employee"></param>
     /// <returns></returns>
-    Task<EmployeeGetDto> CreateEmployee(EmployeeCreateDto employee);
+    Task<EmployeeViewDto> CreateEmployee(EmployeeCreateDto employee);
     
     /// <summary>
     /// Update Employee Async
     /// </summary>
     /// <param name="employee"></param>
     /// <returns></returns>
-    Task<EmployeeGetDto> UpdateEmployee(EmployeeUpdateDto employee);
+    Task<EmployeeViewDto> UpdateEmployee(EmployeeUpdateDto employee);
     
     /// <summary>
     /// Delete Employee Async

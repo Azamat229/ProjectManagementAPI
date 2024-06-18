@@ -29,10 +29,10 @@ public class EmployeeService : IEmployeeService
     /// Get Employees
     /// </summary>
     /// <returns></returns>
-    public async Task<List<EmployeeGetDto>> GetEmployees()
+    public async Task<List<EmployeeViewDto>> GetEmployees()
     {
         var employees = await _context.Employees.ToListAsync();
-        return _mapper.Map<List<EmployeeGetDto>>(employees);
+        return _mapper.Map<List<EmployeeViewDto>>(employees);
     }
 
     /// <summary>
@@ -40,11 +40,11 @@ public class EmployeeService : IEmployeeService
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public async Task<EmployeeGetDto> GetEmployee(int id)
+    public async Task<EmployeeViewDto> GetEmployee(int id)
     {
         var employee = await _context.Employees.FindAsync(id);
         if (employee == null) return null;
-        return _mapper.Map<EmployeeGetDto>(employee);
+        return _mapper.Map<EmployeeViewDto>(employee);
     }
 
     /// <summary>
@@ -52,13 +52,13 @@ public class EmployeeService : IEmployeeService
     /// </summary>
     /// <param name="employeeCreateDto"></param>
     /// <returns></returns>
-    public async Task<EmployeeGetDto> CreateEmployee(EmployeeCreateDto employeeCreateDto)
+    public async Task<EmployeeViewDto> CreateEmployee(EmployeeCreateDto employeeCreateDto)
     {
         var employee = _mapper.Map<Employee>(employeeCreateDto);
         _context.Employees.Add(employee);
         await _context.SaveChangesAsync();
         
-        return _mapper.Map<EmployeeGetDto>(employee);
+        return _mapper.Map<EmployeeViewDto>(employee);
     }
 
     /// <summary>
@@ -66,13 +66,13 @@ public class EmployeeService : IEmployeeService
     /// </summary>
     /// <param name="employeeUpdateDto"></param>
     /// <returns></returns>
-    public async Task<EmployeeGetDto> UpdateEmployee(EmployeeUpdateDto employeeUpdateDto)
+    public async Task<EmployeeViewDto> UpdateEmployee(EmployeeUpdateDto employeeUpdateDto)
     {
         var employee = await _context.Employees.FindAsync(employeeUpdateDto.EmployeeId);
         if (employee == null) return null;
         _mapper.Map(employeeUpdateDto, employee);
         await _context.SaveChangesAsync();
-        return _mapper.Map<EmployeeGetDto>(employee);
+        return _mapper.Map<EmployeeViewDto>(employee);
     }
 
     /// <summary>

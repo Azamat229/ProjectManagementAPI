@@ -30,23 +30,23 @@ public class ProjectService : IProjectService
     /// <summary>
     /// Retrieves all projects asynchronously.
     /// </summary>
-    public async Task<IEnumerable<ProjectGetDto>>  GetProjects()
+    public async Task<IEnumerable<ProjectViewDto>>  GetProjects()
     {
         var projectsQuery =  GetPrivateProjects();
         
         var projects = await projectsQuery.ToListAsync();
 
-        return _mapper.Map<IEnumerable<ProjectGetDto>>(projects);
+        return _mapper.Map<IEnumerable<ProjectViewDto>>(projects);
     }
     
     /// <summary>
     /// Retrieves a project by its ID asynchronously.
     /// </summary>
-    public async Task<ProjectGetDto> GetProject(int projectId)
+    public async Task<ProjectViewDto> GetProject(int projectId)
     {
         var project = await GetPrivateProjects().FirstOrDefaultAsync(p => p.Id == projectId);
         
-        return _mapper.Map<ProjectGetDto>(project);
+        return _mapper.Map<ProjectViewDto>(project);
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="projectId"></param>
     /// <param name="employeeId"></param>
-    public async Task AddEmployeeToProject(int projectId, int employeeId)
+    public async Task<bool>  AddEmployeeToProject(int projectId, int employeeId)
     {
         //todo обработку ошибки нужно поставить чтобы понять операция была правельная или нет
 
@@ -128,6 +128,7 @@ public class ProjectService : IProjectService
         
         _context.ProjectEmployees.Add(projectEmployee);
         await _context.SaveChangesAsync();
+        return true;
     }
 
     /// <summary>
@@ -135,7 +136,7 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="projectId"></param>
     /// <param name="employeeId"></param>
-    public async Task RemoveEmployeeFromProject(int projectId, int employeeId)
+    public async Task<bool>  RemoveEmployeeFromProject(int projectId, int employeeId)
     {
         var projectEmployee = await _context.
             ProjectEmployees
@@ -149,6 +150,8 @@ public class ProjectService : IProjectService
             _context.Entry(projectEmployee).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
+
+        return true;
     }
 
     /// <summary>
@@ -156,7 +159,7 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="filter"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<ProjectGetDto>> GetProjectsFilter( ProjectFilterDto filter)
+    public async Task<IEnumerable<ProjectViewDto>> GetProjectsFilter( ProjectFilterDto filter)
     {
         var projectsQuery = GetPrivateProjects();
 
@@ -166,7 +169,7 @@ public class ProjectService : IProjectService
 
         var projectPaginated = Paginate(projectQueryFiltered, filter.PageNumber, filter.PageSize);
 
-        return  _mapper.Map<IEnumerable<ProjectGetDto>>(projectPaginated);
+        return  _mapper.Map<IEnumerable<ProjectViewDto>>(projectPaginated);
 
         // если параметр не null то просто верни если dto существует то отсортеруй
     }

@@ -1,6 +1,6 @@
 ﻿namespace ProjectManagement.BLL.DTOs.EmployeeDtos;
 
-public class EmployeeGetDto
+public class EmployeeViewDto
 {
     public int EmployeeId { get; set; }
     public string FirstName { get; set; }
